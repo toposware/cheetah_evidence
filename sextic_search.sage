@@ -63,7 +63,7 @@ def make_finite_field(k):
         return k_new, phi, phi_inv
 
 
-def find_curve(extension, extension_tower, psi_map, min_cofactor, max_cofactor, small_order, wid=0, processes=1):
+def find_curve(extension, extension_tower, psi_map, max_cofactor, small_order, wid=0, processes=1):
     r"""Yield curve constructed over a prime field extension.
 
     INPUT:
@@ -71,10 +71,9 @@ def find_curve(extension, extension_tower, psi_map, min_cofactor, max_cofactor, 
     - ``extension`` -- the field seen as a direct extension
     - ``extension_tower`` -- the field seen as an extension tower
     - ``psi_map`` -- an isomorphism from `extension` to `extension_tower`
-    - ``min_cofactor`` -- the minimum cofactor for the curve order
     - ``max_cofactor`` -- the maximum cofactor for the curve order
     - ``small_order`` -- boolean indicating whether to look for small orders (254/255 bits).
-            Overrides `min_cofactor` and `max_cofactor` if set to `True`.
+            Overrides `max_cofactor` if set to `True`.
     - ``wid`` -- current job id (default 0)
     - ``processes`` -- number of concurrent jobs (default 1)
 
@@ -111,8 +110,6 @@ def find_curve(extension, extension_tower, psi_map, min_cofactor, max_cofactor, 
         if small_order:
             if prime_order.nbits() < 254 or prime_order.nbits() > 255:
                 continue
-        elif cofactor < min_cofactor:
-            continue
         elif cofactor > max_cofactor:
             continue
 
@@ -174,17 +171,16 @@ def find_curve(extension, extension_tower, psi_map, min_cofactor, max_cofactor, 
         yield (extension, E, g, prime_order, cofactor, i, coeff_a, coeff_b, rho_sec, k, twist_rho_sec)
 
 
-def print_curve(prime, extension_degree, min_cofactor, max_cofactor, small_order, wid=0, processes=1):
+def print_curve(prime, extension_degree, max_cofactor, small_order, wid=0, processes=1):
     r"""Print parameters of curves defined over a prime field extension
 
     INPUT:
 
     - ``prime`` -- the base prime defining Fp
     - ``extension_degree`` -- the targeted extension degree, defining Fp^n on which the curves will be constructed
-    - ``min_cofactor`` -- the minimum cofactor for the curve order
     - ``max_cofactor`` -- the maximum cofactor for the curve order
     - ``small_order`` -- boolean indicating whether to look for small orders (254/255 bits).
-            Overrides `min_cofactor` and `max_cofactor` if set to `True`.
+            Overrides `max_cofactor` if set to `True`.
     - ``wid`` -- current job id (default 0)
     - ``processes`` -- number of concurrent jobs (default 1)
 
@@ -220,7 +216,7 @@ def print_curve(prime, extension_degree, min_cofactor, max_cofactor, small_order
         print(info)
     extension, _phi, psi = make_finite_field(Fp)
 
-    for (extension, E, g, order, cofactor, index, coeff_a, coeff_b, rho_security, embedding_degree, twist_rho_security) in find_curve(extension, Fp, psi, min_cofactor, max_cofactor, small_order, wid, processes):
+    for (extension, E, g, order, cofactor, index, coeff_a, coeff_b, rho_security, embedding_degree, twist_rho_security) in find_curve(extension, Fp, psi, max_cofactor, small_order, wid, processes):
         coeff_b_prime = psi(coeff_b)
         E_prime = EllipticCurve(Fp, [1, coeff_b_prime])
         output = "\n\n\n"
@@ -333,12 +329,11 @@ Args:
     prime = int(args[0]) if len(
         args) > 0 else 4719772409484279809  # 2^62 + 2^56 + 2^55 + 1
     extension_degree = int(args[1]) if len(args) > 1 else 6
-    min_cofactor = 0
     max_cofactor = int(args[2]) if len(args) > 2 else 64
 
     if processes == 1:
         strategy(prime, extension_degree,
-                 min_cofactor, max_cofactor, small_order)
+                 max_cofactor, small_order)
     else:
         print(f"Using {processes} processes.")
         pool = Pool(processes=processes)
@@ -346,7 +341,7 @@ Args:
         try:
             for wid in range(processes):
                 pool.apply_async(
-                    worker, (strategy, prime, extension_degree, min_cofactor, max_cofactor, small_order, wid, processes))
+                    worker, (strategy, prime, extension_degree, max_cofactor, small_order, wid, processes))
 
             while True:
                 sleep(1000)
