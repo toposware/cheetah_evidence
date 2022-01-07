@@ -238,7 +238,7 @@ def print_curve(prime, extension_degree, max_cofactor, small_order, wid=0, proce
         output += f"Curve embedding degree: {embedding_degree} (>2^{embedding_degree.nbits()-1}) \n"
         output += f"Twist security (Pollard-Rho): {'%.2f'%(twist_rho_security)}\n"
         # checked in find_curve
-        output += f"Curve resistant to extension-specific attacks: True\n\n"
+        output += f"Curve resistant to cover and decomposition attacks: True\n\n"
         print(output)
     return
 
