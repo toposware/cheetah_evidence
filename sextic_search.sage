@@ -21,7 +21,7 @@ def find_curve(extension, extension_tower, psi_map, max_cofactor, small_order, w
     - ``extension_tower`` -- the field seen as an extension tower
     - ``psi_map`` -- an isomorphism from `extension` to `extension_tower`
     - ``max_cofactor`` -- the maximum cofactor for the curve order
-    - ``small_order`` -- boolean indicating whether to look for small orders (254/255 bits).
+    - ``small_order`` -- boolean indicating whether to look for small orders (252-255 bits).
             Overrides `max_cofactor` if set to `True`.
     - ``wid`` -- current job id (default 0)
     - ``processes`` -- number of concurrent jobs (default 1)
@@ -57,7 +57,7 @@ def find_curve(extension, extension_tower, psi_map, max_cofactor, small_order, w
         prime_order = list(ecm.factor(n))[-1]
         cofactor = n // prime_order
         if small_order:
-            if prime_order.nbits() < 254 or prime_order.nbits() > 255:
+            if prime_order.nbits() < 252 or prime_order.nbits() > 255:
                 continue
         elif cofactor > max_cofactor:
             continue
@@ -128,7 +128,7 @@ def print_curve(prime, extension_degree, max_cofactor, small_order, wid=0, proce
     - ``prime`` -- the base prime defining Fp
     - ``extension_degree`` -- the targeted extension degree, defining Fp^n on which the curves will be constructed
     - ``max_cofactor`` -- the maximum cofactor for the curve order
-    - ``small_order`` -- boolean indicating whether to look for small orders (254/255 bits).
+    - ``small_order`` -- boolean indicating whether to look for small orders (252-255 bits).
             Overrides `max_cofactor` if set to `True`.
     - ``wid`` -- current job id (default 0)
     - ``processes`` -- number of concurrent jobs (default 1)
@@ -161,7 +161,7 @@ def print_curve(prime, extension_degree, max_cofactor, small_order, wid=0, proce
 
     if wid == 0:
         if small_order:
-            info += f"Looking for curves with 254 or 255-bit prime order.\n"
+            info += f"Looking for curves with 252-255-bit prime order.\n"
         else:
             info += f"Looking for curves with max cofactor: {max_cofactor}.\n"
         print(info)
@@ -211,7 +211,7 @@ Cmd: sage sextic_search.sage [--sequential] [--small-order] <prime> <extension_d
 
 Args:
     --sequential        Uses only one process
-    --small-order       Looks for curves with 254 or 255-bit prime order (overrides cofactor)
+    --small-order       Looks for curves with 252-255-bit prime order (overrides cofactor)
     <prime>             A prime number, default 2^62 + 2^56 + 2^55 + 1
     <extension_degree>  The extension degree of the prime field, default 6
     <max_cofactor>      Maximum cofactor of the curve, default 64

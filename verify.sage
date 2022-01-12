@@ -1,6 +1,6 @@
 """
 This module provides evidences of the security of the Cheetah elliptic curve defined over
-a sextic extension of the prime field Fp with p = 2^62 + 2^56 + 2^55 + 1.
+a sextic extension of the prime field Fp with p = 2^64 - 2^32 + 1.
 """
 
 from utils import *
@@ -44,7 +44,7 @@ def verify():
     assert(psi(CURVE_GENERATOR_X_DIRECT) == k6(CURVE_GENERATOR_X))
     assert(psi(CURVE_GENERATOR_Y_DIRECT) == k6(CURVE_GENERATOR_Y))
 
-    # Enforce that basepoint are of order `CURVE_PRIME_ORDER`
+    # Enforce that basepoint is of order `CURVE_PRIME_ORDER`
     assert(G.order() == CURVE_PRIME_ORDER)
     assert(g * CURVE_COFACTOR != e(0, 1, 0))
     assert(G * CURVE_COFACTOR != E(0, 1, 0))
