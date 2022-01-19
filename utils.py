@@ -68,6 +68,43 @@ def make_finite_field(k):
         return k_new, phi, phi_inv
 
 
+def poly_weight(poly, p):
+    r"""Return the weight of a polynomial seen as sum of its coefficients
+    absolute values, when seen as field elements.
+
+    INPUT:
+
+    - ``poly`` -- a polynomial
+    - ``p`` -- the ring characteristic
+
+    OUTPUT: an int as weight of the polynomial
+
+    """
+
+    return sum(dist(t, p) for t in poly.coefficients())
+
+
+def dist(n, p):
+    r"""Return the absolute value of an integer `n`
+    seen as element of F_p, with providid prime `p`.
+
+    For instance dist(2, 17) == dist(15,17) == 2.
+
+    INPUT:
+
+    - ``n`` -- an integer
+    - ``p`` -- a prime number 
+
+    OUTPUT: an int as absolute value of `n` seen as field element 
+
+    """
+
+    if n > p//2:
+        return Integer(p-n)
+    else:
+        return Integer(n)
+
+
 def find_irreducible_poly(ring, degree, use_root=False, max_coeff=2, output_all=False):
     r"""Return a list of irreducible polynomials with small and few coefficients.
 

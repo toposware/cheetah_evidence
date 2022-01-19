@@ -144,12 +144,14 @@ def print_curve(prime, extension_degree, max_cofactor, small_order, wid=0, proce
     for n in range(len(factors)):
         degree = factors[n][0]
         for i in range(factors[n][1]):  # multiplicity
-            poly_list = find_irreducible_poly(Fpx, degree)
+            poly_list = find_irreducible_poly(Fpx, degree, output_all=True)
             if poly_list == []:
-                poly_list = find_irreducible_poly(Fpx, degree, use_root=True)
+                poly_list = find_irreducible_poly(
+                    Fpx, degree, use_root=True, output_all=True)
                 if poly_list == []:
                     raise ValueError(
                         'Could not find an irreducible polynomial with specified parameters.')
+            poly_list.sort(key=lambda e: poly_weight(e, prime))
             poly = poly_list[0]  # extract the polynomial from the list
             Fp = Fp.extension(poly, f"u_{n}{i}")
             if wid == 0:
