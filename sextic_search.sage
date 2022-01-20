@@ -188,15 +188,14 @@ Args:
     --sequential        Uses only one process
     --small-order       Looks for curves with 252-255-bit prime order (overrides cofactor)
     <prime>             A prime number, default 2^62 + 2^56 + 2^55 + 1
-    <extension_degree>  The extension degree of the prime field, default 6
     <max_cofactor>      Maximum cofactor of the curve, default 64
 """)
         return
 
     prime = int(args[0]) if len(
-        args) > 0 else 4719772409484279809  # 2^62 + 2^56 + 2^55 + 1
-    extension_degree = int(args[1]) if len(args) > 1 else 6
-    max_cofactor = int(args[2]) if len(args) > 2 else 64
+        args) > 0 else 18446744069414584321  # 2^64 - 2^32 + 1
+    extension_degree = 6
+    max_cofactor = int(args[1]) if len(args) > 1 else 64
 
     if processes == 1:
         strategy(prime, extension_degree,
