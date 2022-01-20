@@ -1,3 +1,7 @@
+"""
+Utility module for search and verification algorithms.
+"""
+
 from constants import CURVE_COFACTOR, CURVE_PRIME_ORDER
 from sage.all import *
 from termcolor import colored
@@ -406,10 +410,11 @@ def ghs_security(curve_coeff_a, curve_coeff_b, curve_basefield):
     OUTPUT: a boolean indicating whether the given `curve` is resistant to the GHS attack.
     """
 
-    # Construct a tower extension isomorphic to field
+    # Construct a tower extension isomorphic to curve_basefield
     p = curve_basefield.characteristic()
     Fp = GF(p)
     Fpx = Fp["x"]
+    # For quadratic extension, it may be necessary to extend the search.
     poly = find_irreducible_poly(Fpx, 2, use_root=True)[0]
     Fp = Fp.extension(poly, "a1")
     Fpx = Fp["x"]

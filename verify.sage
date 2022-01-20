@@ -1,6 +1,6 @@
 """
-This module provides evidences of the security of the Cheetah elliptic curve defined over
-a sextic extension of the prime field Fp with p = 2^64 - 2^32 + 1.
+This module provides evidences of the security of the Cheetah elliptic
+curve defined over a sextic extension of the prime field GF(2^64 - 2^32 + 1).
 """
 
 from utils import *

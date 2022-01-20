@@ -1,3 +1,9 @@
+"""
+This module provides all the necessary constants to build and verify the
+security of the Cheetah elliptic curve, formed on a sextic extension
+of the prime field GF(2^64 - 2^32 + 1).
+"""
+
 from sage.all import *
 
 # Parameters defining the extension
