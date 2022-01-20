@@ -105,7 +105,7 @@ def dist(n, p):
         return Integer(n)
 
 
-def find_irreducible_poly(ring, degree, use_root=False, max_coeff=2, output_all=False):
+def find_irreducible_poly(ring, degree, use_root=False, max_coeff=3, output_all=False):
     r"""Return a list of irreducible polynomials with small and few coefficients.
 
     INPUT:
@@ -315,7 +315,7 @@ def twist_security_ignore_embedding_degree(p, q, main_factor_of_2pp1mq=0):
     return log(PI_4 * r, 4)
 
 
-def sextic_extension_specific_security(curve, curve_polynomial, number_points=0):
+def sextic_extension_specific_security(curve, curve_coeff_a, curve_coeff_b, field_characteristic, number_points=0):
     r""" Return whether the given `curve` is resistant to extension specific attacks, namely:
 
         - genus 2 cover attacks
@@ -336,7 +336,7 @@ def sextic_extension_specific_security(curve, curve_polynomial, number_points=0)
     sec_g2 = genus_2_cover_security(curve)
     sec_g3_h = genus_3_hyperelliptic_cover_security(curve, number_points)
     sec_g3_nh = genus_3_hyperelliptic_cover_security(curve)
-    sec_ghs = ghs_security(curve_polynomial)
+    sec_ghs = ghs_security(curve_coeff_a, curve_coeff_b, field_characteristic)
 
     return sec_g2 and sec_g3_h and sec_g3_nh and sec_ghs
 
@@ -394,17 +394,39 @@ def genus_3_nonhyperelliptic_cover_security(curve):
     return log(1.23123 * log(q, 2) ** 2 * q, 2).numerical_approx() > EXTENSION_SECURITY
 
 
-def ghs_security(curve_polynomial):
+def ghs_security(curve_coeff_a, curve_coeff_b, curve_basefield):
     r""" Return whether the given `curve` is resistant to the GHS attack.
 
     INPUT:
 
-    - ``curve_polynomial`` -- the elliptic curve defining polynomial f in the Weierstrass equation y^2 = f(x)
+    - ``curve_coeff_a`` -- the elliptic curve coefficient a in short Weierstrass form
+    - ``curve_coeff_b`` -- the elliptic curve coefficient b in short Weierstrass form
+    - ``curve_basefield`` -- the elliptic curve basefield
 
     OUTPUT: a boolean indicating whether the given `curve` is resistant to the GHS attack.
     """
 
-    p = curve_polynomial.base_ring().characteristic()
+    # Construct a tower extension isomorphic to field
+    p = curve_basefield.characteristic()
+    Fp = GF(p)
+    Fpx = Fp["x"]
+    poly = find_irreducible_poly(Fpx, 2, use_root=True)[0]
+    Fp = Fp.extension(poly, "a1")
+    Fpx = Fp["x"]
+    poly = find_irreducible_poly(Fpx, 3)[0]
+    Fp = Fp.extension(poly, "a2")
+
+    basefield_bis, _, psi2 = make_finite_field(Fp)
+    psi1 = curve_basefield.Hom(basefield_bis)[0]
+    # Ensure that basefield_bis is isomorphic to curve_basefield
+    assert(psi1.is_injective())
+    assert(psi1.is_surjective())
+    psi = psi1.post_compose(psi2)
+
+    K = Fp["x"]
+    x = K.gen()
+    curve_polynomial = K(x ** 3 + psi(curve_coeff_a)*x + psi(curve_coeff_b))
+
     roots = curve_polynomial.roots(multiplicities=false)
     if roots != []:
         for root in roots:

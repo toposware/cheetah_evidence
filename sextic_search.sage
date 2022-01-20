@@ -12,14 +12,12 @@ if sys.version_info[0] == 2:
     range = xrange
 
 
-def find_curve(extension, extension_tower, psi_map, max_cofactor, small_order, wid=0, processes=1):
+def find_curve(extension, max_cofactor, small_order, wid=0, processes=1):
     r"""Yield curve constructed over a prime field extension.
 
     INPUT:
 
     - ``extension`` -- the field seen as a direct extension
-    - ``extension_tower`` -- the field seen as an extension tower
-    - ``psi_map`` -- an isomorphism from `extension` to `extension_tower`
     - ``max_cofactor`` -- the maximum cofactor for the curve order
     - ``small_order`` -- boolean indicating whether to look for small orders (252-255 bits).
             Overrides `max_cofactor` if set to `True`.
@@ -43,7 +41,6 @@ def find_curve(extension, extension_tower, psi_map, max_cofactor, small_order, w
     """
 
     a = extension.primitive_element()
-    p = extension.base_ring().order()
     for i in range(wid + 1, 1000000000, processes):
         sys.stdout.write(".")
         sys.stdout.flush()
@@ -65,7 +62,6 @@ def find_curve(extension, extension_tower, psi_map, max_cofactor, small_order, w
         sys.stdout.write("o")
         sys.stdout.flush()
 
-        # TODO: use proper hash-to-curve algorithm
         bin = BinaryStrings()
         gen_x_bin = bin.encoding("Topos")
         gen_x = extension(int(str(gen_x_bin), 2))
@@ -73,15 +69,14 @@ def find_curve(extension, extension_tower, psi_map, max_cofactor, small_order, w
         while True:
             if gen_y2.is_square():
                 g = E((gen_x, gen_y2.sqrt()))
-                g_ord = g.order()
-                if g_ord >= prime_order:
+                if cofactor * g != E(0, 1, 0):  # ord(g) >= prime_order
                     sys.stdout.write("@")
                     sys.stdout.flush()
                     break
             gen_x += 1
-            gen_y2 = (gen_x ^ 3 + gen_x + coeff_b)
+            gen_y2 = (gen_x ^ 3 + coeff_a * gen_x + coeff_b)
 
-        if g_ord != prime_order:
+        if prime_order * g != E(0, 1, 0):
             g = cofactor * g
 
         (rho_sec, k) = curve_security(
@@ -99,12 +94,8 @@ def find_curve(extension, extension_tower, psi_map, max_cofactor, small_order, w
         sys.stdout.write("~")
         sys.stdout.flush()
 
-        extension_tower_polynomial_ring = extension_tower['x']
-        x = extension_tower_polynomial_ring.gen()
-        curve_polynomial = x ^ 3 + coeff_a * x + psi_map(coeff_b)
-
         extension_sec = sextic_extension_specific_security(
-            E, curve_polynomial, n)
+            E, coeff_a, coeff_b, extension, n)
         if not extension_sec:
             continue
 
@@ -139,25 +130,18 @@ def print_curve(prime, extension_degree, max_cofactor, small_order, wid=0, proce
     if wid == 0:
         info = f"\n{Fp}.\n"
     Fpx = Fp['x']
-    factors = list(factor(Integer(extension_degree)))
-    count = 1
-    for n in range(len(factors)):
-        degree = factors[n][0]
-        for i in range(factors[n][1]):  # multiplicity
-            poly_list = find_irreducible_poly(Fpx, degree, output_all=True)
-            if poly_list == []:
-                poly_list = find_irreducible_poly(
-                    Fpx, degree, use_root=True, output_all=True)
-                if poly_list == []:
-                    raise ValueError(
-                        'Could not find an irreducible polynomial with specified parameters.')
-            poly_list.sort(key=lambda e: poly_weight(e, prime))
-            poly = poly_list[0]  # extract the polynomial from the list
-            Fp = Fp.extension(poly, f"u_{n}{i}")
-            if wid == 0:
-                info += f"Modulus {count}: {poly}.\n"
-                count += 1
-            Fpx = Fp['x']
+    poly_list = find_irreducible_poly(Fpx, extension_degree, output_all=True)
+    if poly_list == []:
+        poly_list = find_irreducible_poly(
+            Fpx, extension_degree, use_root=True, output_all=True)
+    if poly_list == []:
+        raise ValueError(
+            'Could not find an irreducible polynomial with specified parameters.')
+    poly_list.sort(key=lambda e: poly_weight(e, prime))
+    poly = poly_list[0]  # extract the polynomial from the list
+    Fp = Fp.extension(poly, "u")
+    if wid == 0:
+        info += f"Modulus: {poly}.\n"
 
     if wid == 0:
         if small_order:
@@ -167,20 +151,11 @@ def print_curve(prime, extension_degree, max_cofactor, small_order, wid=0, proce
         print(info)
     extension, _phi, psi = make_finite_field(Fp)
 
-    for (extension, E, g, order, cofactor, index, coeff_a, coeff_b, rho_security, embedding_degree, twist_rho_security) in find_curve(extension, Fp, psi, max_cofactor, small_order, wid, processes):
-        coeff_b_prime = psi(coeff_b)
-        E_prime = EllipticCurve(Fp, [1, coeff_b_prime])
+    for (extension, E, g, order, cofactor, index, coeff_a, coeff_b, rho_security, embedding_degree, twist_rho_security) in find_curve(extension, max_cofactor, small_order, wid, processes):
         output = "\n\n\n"
-        output += "# Curve with basefield seen as a direct extension\n"
-        output += f"E(GF(({extension.base_ring().order().factor()})^{extension.degree()})) : y^2 = x^3 + x + {coeff_b} (b == a^{index})\n"
+        output += f"E(GF(({extension.base_ring().order().factor()})^{extension.degree()})) : y^2 = x^3 + {coeff_a}x + {coeff_b} (b == a^{index})\n"
         output += f"\t\twith a = {extension.primitive_element()}\n"
-        output += "# Curve with basefield seen as a towered extension\n"
-        output += f"E'(GF(({Fp.base_ring().order().factor()})^{Fp.degree()})) : y^2 = x^3 + x + {coeff_b_prime}\n\n"
         output += f"E generator point: {g}\n"
-        gx = g.xy()[0]
-        gy = g.xy()[1]
-        g_prime = E_prime(psi(gx), psi(gy))
-        output += f"E' generator point: {g_prime}\n\n"
         output += f"Curve prime order: {order} ({order.nbits()} bits)\n"
         output += f"Curve cofactor: {cofactor}"
         if cofactor > 4:
