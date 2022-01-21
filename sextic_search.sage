@@ -130,15 +130,18 @@ def print_curve(prime, extension_degree, max_cofactor, small_order, wid=0, proce
     if wid == 0:
         info = f"\n{Fp}.\n"
     Fpx = Fp['x']
-    poly_list = find_irreducible_poly(Fpx, extension_degree, output_all=True)
-    if poly_list == []:
+    poly = find_sparse_irreducible_poly(Fpx, extension_degree, use_root=True)
+    if poly == 0:
         poly_list = find_irreducible_poly(
-            Fpx, extension_degree, use_root=True, output_all=True)
-    if poly_list == []:
-        raise ValueError(
-            'Could not find an irreducible polynomial with specified parameters.')
-    poly_list.sort(key=lambda e: poly_weight(e, prime))
-    poly = poly_list[0]  # extract the polynomial from the list
+            Fpx, extension_degree, output_all=True)
+        if poly_list == []:
+            poly_list = find_irreducible_poly(
+                Fpx, extension_degree, use_root=True, output_all=True)
+        if poly_list == []:
+            raise ValueError(
+                'Could not find an irreducible polynomial with specified parameters.')
+        poly_list.sort(key=lambda e: poly_weight(e, prime))
+        poly = poly_list[0]  # extract the polynomial from the list
     Fp = Fp.extension(poly, "u")
     if wid == 0:
         info += f"Modulus: {poly}.\n"

@@ -109,6 +109,40 @@ def dist(n, p):
         return Integer(n)
 
 
+def find_sparse_irreducible_poly(ring, degree, use_root=False, max_coeff=10):
+    r"""Return an irreducible polynomial of the form X^k - j with smallest j
+    in absolute value below max_coeff if any, or 0.
+
+    INPUT:
+
+    - ``ring`` -- a polynomial ring
+    - ``degree`` -- the degree of the irreducible polynomial
+    - ``use_root`` -- boolean indicating whether using only the ring base field elements as coefficients
+                      or using also an element not belonging to the base field (default False)
+    - ``max_coeff`` -- maximum absolute value for polynomial coefficients
+
+    OUTPUT: an irreducible polynomial of the form X^k - j with smallest j
+    in absolute value below max_coeff if any, or 0.
+
+    """
+
+    x = ring.gen()
+
+    for j in range(1, max_coeff + 1):
+        poly = x ** degree - j
+        if poly.is_irreducible():
+            return poly
+
+    if use_root:
+        root = ring.base().gen()
+        for j in range(1, max_coeff + 1):
+            poly = x ** degree - root*j
+            if poly.is_irreducible():
+                return poly
+
+    return 0
+
+
 def find_irreducible_poly(ring, degree, use_root=False, max_coeff=3, output_all=False):
     r"""Return a list of irreducible polynomials with small and few coefficients.
 
@@ -251,7 +285,7 @@ def curve_security(p, q, main_factor=0, main_factor_m1_factors_list=[]):
     """
 
     # Providing directly the main factor of q allows to speed up calculations
-    r = main_factor if main_factor != 0 else factor(q)[-1][0]
+    r = main_factor if main_factor != 0 else ecm.factor(q)[-1]
     return (log(PI_4 * r, 4), embedding_degree(p, r, main_factor_m1_factors_list))
 
 
@@ -314,8 +348,8 @@ def twist_security_ignore_embedding_degree(p, q, main_factor_of_2pp1mq=0):
     OUTPUT: the estimated cost of running Pollard-Rho attack on the twist.
     """
 
-    r = main_factor_of_2pp1mq if main_factor_of_2pp1mq != 0 else factor(
-        2*(p+1) - q)[-1][0]
+    r = main_factor_of_2pp1mq if main_factor_of_2pp1mq != 0 else ecm.factor(
+        2*(p+1) - q)[-1]
     return log(PI_4 * r, 4)
 
 
