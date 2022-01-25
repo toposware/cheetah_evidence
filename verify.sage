@@ -50,6 +50,20 @@ def verify():
     is_mov_secure = e_security[1].nbits() > EMBEDDING_DEGREE_SECURITY
     twist_is_mov_secure = t_security[1] > EMBEDDING_DEGREE_SECURITY
 
+    # Check complex discriminant
+    # p^6 + 1 - t = #E
+    t = P ** 6 + 1 - CURVE_FULL_ORDER
+    D = t ** 2 - 4*P ** 6
+    assert(prod(x ^ y for x, y in DISCRIMINANT_FACTORS)
+           == -D)
+    for (factor, _) in DISCRIMINANT_FACTORS:
+        while D % factor**2 == 0:
+            D //= factor**2
+
+    if D % 4 != 1:
+        D *= 4
+    is_discriminant_large = D < -2 ** DISCRIMINANT_SECURITY
+
     # Check sextic-extension specific attack security of the curve
     is_genus_2_secure = genus_2_cover_security(E)
     is_genus_3_h_secure = genus_3_hyperelliptic_cover_security(
@@ -59,7 +73,7 @@ def verify():
 
     # Print final results
     display_result(p_isprime, q_isprime, CURVE_PRIME_ORDER.nbits(), is_pollard_rho_secure, is_mov_secure, e_security, twist_is_pollard_rho_secure,
-                   twist_is_mov_secure, t_security, is_genus_2_secure, is_genus_3_h_secure, is_genus_3_nh_secure, is_ghs_secure)
+                   twist_is_mov_secure, t_security, is_discriminant_large, D.nbits(), is_genus_2_secure, is_genus_3_h_secure, is_genus_3_nh_secure, is_ghs_secure)
 
 
 verify()

@@ -2,7 +2,6 @@
 Utility module for search and verification algorithms.
 """
 
-from constants import CURVE_COFACTOR, CURVE_PRIME_ORDER
 from sage.all import *
 from termcolor import colored
 from itertools import combinations_with_replacement
@@ -12,6 +11,7 @@ RHO_SECURITY = 125
 EXTENSION_SECURITY = 125
 TWIST_SECURITY = 100
 EMBEDDING_DEGREE_SECURITY = 200
+DISCRIMINANT_SECURITY = 100
 # For Pollard-Rho security analysis
 PI_4 = (pi/4).numerical_approx()
 
@@ -211,6 +211,8 @@ def display_result(
         twist_is_pollard_rho_secure,
         twist_is_mov_secure,
         t_security,
+        is_discriminant_large,
+        discriminant_nbits,
         is_genus_2_secure,
         is_genus_3_h_secure,
         is_genus_3_nh_secure,
@@ -228,6 +230,8 @@ def display_result(
     - ``twist_is_pollard_rho_secure`` -- a boolean indicating if the twist is secure against the Pollard-Rho attack
     - ``twist_is_mov_secure`` -- a boolean indicating if the twist is secure against the MOV attack
     - ``t_security`` -- a tuple indicating the attack cost on the twist of Pollard-Rho and the embedding degree
+    - ``is_discriminant_large`` -- a boolean indicating if the curve complex discriminant is large enough
+    - ``discriminant_nbits`` -- the number of bits of the complex discriminant
     - ``is_genus_2_secure`` -- a boolean indicating if the curve is secure against a genus 2 cover attack
     - ``is_genus_3_h_secure`` -- a boolean indicating if the curve is secure against a hyperelliptic genus 3 cover attack
     - ``is_genus_3_nh_secure`` -- a boolean indicating if the curve is secure against a non-hyperelliptic genus 3 cover attack
@@ -253,6 +257,7 @@ def display_result(
     output += f"|\tcurve is secure against MOV attack: {color(is_mov_secure)} (curve embedding degree > 2^{e_security[1].nbits()})\t|\n"
     output += f"|\ttwist is secure against the Pollard-Rho attack: {color(twist_is_pollard_rho_secure)} ({t_security[0]:.2f} bits)\t\t|\n"
     output += f"|\ttwist is secure against MOV attack: {color(twist_is_mov_secure)} (twist embedding degree > 2^{t_security[1].nbits()})\t|\n"
+    output += f"|\tcurve has large enough complex discriminant: {color(is_discriminant_large)} (discriminant > 2^{discriminant_nbits})\t|\n"
     output += f"|\tcurve is secure against genus 2 cover attack: {color(is_genus_2_secure)}\t\t\t\t|\n"
     output += f"|\tcurve is secure against genus 3 hyperelliptic cover attack: {color(is_genus_3_h_secure)}\t\t|\n"
     output += f"|\tcurve is secure against genus 3 non-hyperelliptic cover attack: {color(is_genus_3_nh_secure)}\t\t|\n"
