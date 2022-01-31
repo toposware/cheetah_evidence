@@ -7,6 +7,7 @@ from multiprocessing import cpu_count, Pool
 from traceback import print_exc
 
 from utils import *
+from util_hashtocurve import OptimizedSSWU
 
 if sys.version_info[0] == 2:
     range = xrange
@@ -62,25 +63,13 @@ def find_curve(extension, max_cofactor, small_order, wid=0, processes=1):
         sys.stdout.write("o")
         sys.stdout.flush()
 
-        # The following outputs a generator of the prime-order subgroup.
-        # One may use a hash-to-curve approach to generate deterministically
-        # another basepoint.
-        #
-        # See https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-hash-to-curve#section-7
-        # for more informations about hashing to elliptic curves.
+        # We generate a point on the curve with the SSWU hash-to-curve algorithm.
+        # If the point is not in the prime-order subgroup, we multiply it by the cofactor.
+        curve_sswu = OptimizedSSWU(extension, coeff_a, coeff_b)
         bin = BinaryStrings()
-        gen_x_bin = bin.encoding("Topos")
-        gen_x = extension(int(str(gen_x_bin), 2))
-        gen_y2 = (gen_x ^ 3 + gen_x + coeff_b)
-        while True:
-            if gen_y2.is_square():
-                g = E((gen_x, gen_y2.sqrt()))
-                if cofactor * g != E(0, 1, 0):  # ord(g) >= prime_order
-                    sys.stdout.write("@")
-                    sys.stdout.flush()
-                    break
-            gen_x += 1
-            gen_y2 = (gen_x ^ 3 + coeff_a * gen_x + coeff_b)
+        sswu_bin_encoding = bin.encoding("Cheetah")
+        sswu_int = extension(int(str(sswu_bin_encoding), 2))
+        g = curve_sswu.map_to_curve(sswu_int)
 
         if prime_order * g != E(0, 1, 0):
             g = cofactor * g
