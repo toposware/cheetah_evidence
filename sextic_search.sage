@@ -13,7 +13,7 @@ if sys.version_info[0] == 2:
     range = xrange
 
 
-def find_curve(extension, max_cofactor, small_order, wid=0, processes=1):
+def find_curve(extension, max_cofactor, small_order, sswu_string, wid=0, processes=1):
     r"""Yield curve constructed over a prime field extension.
 
     INPUT:
@@ -22,6 +22,7 @@ def find_curve(extension, max_cofactor, small_order, wid=0, processes=1):
     - ``max_cofactor`` -- the maximum cofactor for the curve order
     - ``small_order`` -- boolean indicating whether to look for small orders (252-255 bits).
             Overrides `max_cofactor` if set to `True`.
+    - ``sswu_string`` -- the string to be used when generating the subgroup basepoint with SSWU hash-to-curve
     - ``wid`` -- current job id (default 0)
     - ``processes`` -- number of concurrent jobs (default 1)
 
@@ -67,7 +68,7 @@ def find_curve(extension, max_cofactor, small_order, wid=0, processes=1):
         # If the point is not in the prime-order subgroup, we multiply it by the cofactor.
         curve_sswu = OptimizedSSWU(extension, coeff_a, coeff_b)
         bin = BinaryStrings()
-        sswu_bin_encoding = bin.encoding("Cheetah")
+        sswu_bin_encoding = bin.encoding(sswu_string)
         sswu_int = extension(int(str(sswu_bin_encoding), 2))
         g = curve_sswu.map_to_curve(sswu_int)
 
@@ -106,7 +107,7 @@ def find_curve(extension, max_cofactor, small_order, wid=0, processes=1):
         yield (extension, E, g, prime_order, cofactor, i, coeff_a, coeff_b, rho_sec, k, twist_rho_sec)
 
 
-def print_curve(prime, extension_degree, max_cofactor, small_order, wid=0, processes=1):
+def print_curve(prime, extension_degree, max_cofactor, small_order, sswu_string, wid=0, processes=1):
     r"""Print parameters of curves defined over a prime field extension
 
     INPUT:
@@ -116,6 +117,7 @@ def print_curve(prime, extension_degree, max_cofactor, small_order, wid=0, proce
     - ``max_cofactor`` -- the maximum cofactor for the curve order
     - ``small_order`` -- boolean indicating whether to look for small orders (252-255 bits).
             Overrides `max_cofactor` if set to `True`.
+    - ``sswu_string`` -- the string to be used when generating the subgroup basepoint with SSWU hash-to-curve
     - ``wid`` -- current job id (default 0)
     - ``processes`` -- number of concurrent jobs (default 1)
 
@@ -149,11 +151,11 @@ def print_curve(prime, extension_degree, max_cofactor, small_order, wid=0, proce
         print(info)
     extension, _phi, psi = make_finite_field(Fp)
 
-    for (extension, E, g, order, cofactor, index, coeff_a, coeff_b, rho_security, embedding_degree, twist_rho_security) in find_curve(extension, max_cofactor, small_order, wid, processes):
+    for (extension, E, g, order, cofactor, index, coeff_a, coeff_b, rho_security, embedding_degree, twist_rho_security) in find_curve(extension, max_cofactor, small_order, sswu_string, wid, processes):
         output = "\n\n\n"
         output += f"E(GF(({extension.base_ring().order().factor()})^{extension.degree()})) : y^2 = x^3 + {coeff_a}x + {coeff_b} (b == a^{index})\n"
         output += f"\t\twith a = {extension.primitive_element()}\n"
-        output += f"E generator point: {g}\n"
+        output += f"E generator point (from SSWU on '{sswu_string}'): {g}\n"
         output += f"Curve prime order: {order} ({order.nbits()} bits)\n"
         output += f"Curve cofactor: {cofactor}"
         if cofactor > 4:
@@ -180,13 +182,14 @@ def main():
 
     if help:
         print("""
-Cmd: sage sextic_search.sage [--sequential] [--small-order] <prime> <extension_degree> <max_cofactor>
+Cmd: sage sextic_search.sage [--sequential] [--small-order] <prime> <extension_degree> <max_cofactor> <sswu_string>
 
 Args:
     --sequential        Uses only one process
     --small-order       Looks for curves with 252-255-bit prime order (overrides cofactor)
     <prime>             A prime number, default 2^62 + 2^56 + 2^55 + 1
     <max_cofactor>      Maximum cofactor of the curve, default 64
+    <sswu_string>       The string to be passed to the SSWU map to curve algorithm
 """)
         return
 
@@ -194,10 +197,11 @@ Args:
         args) > 0 else 18446744069414584321  # 2^64 - 2^32 + 1
     extension_degree = 6
     max_cofactor = int(args[1]) if len(args) > 1 else 64
+    sswu_string = str(args[3]) if len(args) > 3 else "Cheetah"
 
     if processes == 1:
         strategy(prime, extension_degree,
-                 max_cofactor, small_order)
+                 max_cofactor, small_order, sswu_string)
     else:
         print(f"Using {processes} processes.")
         pool = Pool(processes=processes)
@@ -205,7 +209,7 @@ Args:
         try:
             for wid in range(processes):
                 pool.apply_async(
-                    worker, (strategy, prime, extension_degree, max_cofactor, small_order, wid, processes))
+                    worker, (strategy, prime, extension_degree, max_cofactor, small_order, sswu_string, wid, processes))
 
             while True:
                 sleep(1000)
