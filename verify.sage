@@ -4,6 +4,7 @@ curve defined over a sextic extension of the prime field GF(2^64 - 2^32 + 1).
 """
 
 from utils import *
+from util_hashtocurve import OptimizedSSWU
 from constants import *
 
 
@@ -30,6 +31,19 @@ def verify():
     assert(G.order() == CURVE_PRIME_ORDER)
     assert(G * CURVE_COFACTOR != E(0, 1, 0))
     assert(G * CURVE_PRIME_ORDER == E(0, 1, 0))
+
+    # Enforce that basepoint has been generated from the "Cheetah"
+    # string and the SSWU hashing-to-curve algorithm
+    cheetah_sswu = OptimizedSSWU(k6, k6(CURVE_COEFF_A), k6(CURVE_COEFF_B))
+    bin = BinaryStrings()
+    sswu_bin_encoding = bin.encoding("Cheetah")
+    sswu_int = k6(int(str(sswu_bin_encoding), 2))
+    g_sswu = cheetah_sswu.map_to_curve(sswu_int)
+    # The obtained point is not yet on the prime-order subgroup
+    assert(g_sswu * CURVE_PRIME_ORDER != E(0, 1, 0))
+    g_sswu = g_sswu * CURVE_COFACTOR
+    # We can now enforce equality with the hardcoded basepoint
+    assert(G == g_sswu)
 
     # Enforce that hardcoded helper constants are valid
     assert(TWIST_PRIME_ORDER.is_prime(proof=True))
