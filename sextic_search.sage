@@ -62,6 +62,12 @@ def find_curve(extension, max_cofactor, small_order, wid=0, processes=1):
         sys.stdout.write("o")
         sys.stdout.flush()
 
+        # The following outputs a generator of the prime-order subgroup.
+        # One may use a hash-to-curve approach to generate deterministically
+        # another basepoint.
+        #
+        # See https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-hash-to-curve#section-7
+        # for more informations about hashing to elliptic curves.
         bin = BinaryStrings()
         gen_x_bin = bin.encoding("Topos")
         gen_x = extension(int(str(gen_x_bin), 2))
