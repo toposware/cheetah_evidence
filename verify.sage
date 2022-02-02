@@ -48,9 +48,9 @@ def verify():
 
     # Compute Pollard-Rho security and embedding degree for the curve and its twist
     e_security = curve_security(
-        P ^ 6, CURVE_FULL_ORDER, CURVE_PRIME_ORDER, CURVE_PRIME_ORDER_MINUS_ONE_FACTORS)
+        P ** 6, CURVE_FULL_ORDER, CURVE_PRIME_ORDER, CURVE_PRIME_ORDER_MINUS_ONE_FACTORS)
     t_security = twist_security(
-        P ^ 6, CURVE_FULL_ORDER, TWIST_PRIME_ORDER, TWIST_PRIME_ORDER_MINUS_ONE_FACTORS)
+        P ** 6, CURVE_FULL_ORDER, TWIST_PRIME_ORDER, TWIST_PRIME_ORDER_MINUS_ONE_FACTORS)
 
     is_pollard_rho_secure = e_security[0] > RHO_SECURITY
     twist_is_pollard_rho_secure = t_security[0] > TWIST_SECURITY
@@ -61,7 +61,7 @@ def verify():
     # p^6 + 1 - t = #E
     t = P ** 6 + 1 - CURVE_FULL_ORDER
     D = t ** 2 - 4*P ** 6
-    assert(prod(x ^ y for x, y in DISCRIMINANT_FACTORS)
+    assert(prod(x ** y for x, y in DISCRIMINANT_FACTORS)
            == -D)
     for (factor, _) in DISCRIMINANT_FACTORS:
         while D % factor**2 == 0:
