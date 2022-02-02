@@ -39,19 +39,12 @@ def verify():
     sswu_bin_encoding = bin.encoding("Cheetah")
     sswu_int = k6(int(str(sswu_bin_encoding), 2))
     g_sswu = cheetah_sswu.map_to_curve(sswu_int)
+
     # The obtained point is not yet on the prime-order subgroup
     assert(g_sswu * CURVE_PRIME_ORDER != E(0, 1, 0))
     g_sswu = g_sswu * CURVE_COFACTOR
     # We can now enforce equality with the hardcoded basepoint
     assert(G == g_sswu)
-
-    # Enforce that hardcoded helper constants are valid
-    assert(TWIST_PRIME_ORDER.is_prime(proof=True))
-    assert((2*(P ^ 6 + 1) - CURVE_FULL_ORDER) % TWIST_PRIME_ORDER == 0)
-    assert(prod(x ^ y for x, y in CURVE_PRIME_ORDER_MINUS_ONE_FACTORS)
-           == CURVE_PRIME_ORDER - 1)
-    assert(prod(x ^ y for x, y in TWIST_PRIME_ORDER_MINUS_ONE_FACTORS)
-           == TWIST_PRIME_ORDER - 1)
 
     # Compute Pollard-Rho security and embedding degree for the curve and its twist
     e_security = curve_security(

@@ -289,7 +289,19 @@ def curve_security(p, q, main_factor=0, main_factor_m1_factors_list=[]):
     Pollard-Rho attack on the curve, and `k` is the curve embedding degree.
     """
 
-    # Providing directly the main factor of q allows to speed up calculations
+    # Ensure that `main_factor` is valid (if provided)
+    if main_factor != 0:
+        # In theory we should check that it is actually the largest factor,
+        # not just an arbitrary one, but this makes no sense to provide a
+        # smaller one anyway so we just skip this check
+        assert(main_factor.is_prime(proof=True))
+        assert(q % main_factor == 0)
+
+    # Ensure that `main_factor_m1_factors_list` is valid (if provided)
+    if main_factor_m1_factors_list != []:
+        assert(prod(x ** y for x, y in main_factor_m1_factors_list)
+               == main_factor - 1)
+
     r = main_factor if main_factor != 0 else ecm.factor(q)[-1]
     return (log(PI_4 * r, 4), embedding_degree(p, r, main_factor_m1_factors_list))
 
@@ -306,11 +318,16 @@ def embedding_degree(p, r, rm1_factors_list=[]):
 
     OUTPUT: the embedding degree `d` of the curve, as `Integer`.
     """
+
+    # We do not check the validity of `rm1_factors_list` as this
+    # method is always called from `curve_security()` which
+    # performs the check.
+
     assert gcd(p, r) == 1
     Z_r = Integers(r)
     u = Z_r(p)
-    d = r-1
-    factors = rm1_factors_list if rm1_factors_list != [] else factor(d)
+    d = r - 1
+    factors = rm1_factors_list if rm1_factors_list != [] else ecm.factor(d)
     for (f, _multiplicity) in factors:
         while d % f == 0:
             if u**(d/f) != 1:
@@ -337,6 +354,9 @@ def twist_security(p, q, main_factor_of_2pp1mq=0, main_factor_of_2pp1mq_m1_facto
     Pollard-Rho attack on the twist, and `k` is the twist embedding degree.
     """
 
+    # Validity checks on `main_factor_of_2pp1mq` and `main_factor_of_2pp1mq_m1_factors_list`
+    # are performed inside `curve_security()` (if provided)
+
     return curve_security(p, 2*(p+1) - q, main_factor_of_2pp1mq, main_factor_of_2pp1mq_m1_factors_list)
 
 
@@ -352,6 +372,14 @@ def twist_security_ignore_embedding_degree(p, q, main_factor_of_2pp1mq=0):
 
     OUTPUT: the estimated cost of running Pollard-Rho attack on the twist.
     """
+
+    # Ensure that `main_factor_of_2pp1mq` is valid (if provided)
+    if main_factor_of_2pp1mq != 0:
+        # In theory we should check that it is actually the largest factor,
+        # not just an arbitrary one, but this makes no sense to provide a
+        # smaller one anyway so we just skip this check
+        assert(main_factor_of_2pp1mq.is_prime(proof=True))
+        assert((2*(p+1) - q) % main_factor_of_2pp1mq == 0)
 
     r = main_factor_of_2pp1mq if main_factor_of_2pp1mq != 0 else ecm.factor(
         2*(p+1) - q)[-1]
@@ -397,8 +425,8 @@ def genus_2_cover_security(curve):
     n = curve.count_points()
     # We don't perform any check on the j-invariant because of the
     # limitations of Sagemath with extension based elliptic curves.
-    # Hence having an odd number of points directly lead to a "weak"
-    # curve here.
+    # Hence having an odd number of points directly lead to considering
+    # having a "weak" curve here.
     two_torsion_rank = curve.two_torsion_rank()
     return two_torsion_rank != 2 and (n % 2 == 1 or True)
 
