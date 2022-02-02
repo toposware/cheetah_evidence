@@ -499,7 +499,7 @@ def ghs_security(curve_coeff_a, curve_coeff_b, curve_basefield):
     x = K.gen()
     curve_polynomial = K(x ** 3 + psi(curve_coeff_a)*x + psi(curve_coeff_b))
 
-    roots = curve_polynomial.roots(multiplicities=false)
+    roots = curve_polynomial.roots(multiplicities=False)
     if roots != []:
         for root in roots:
             if (root ** (p**2) in roots) or (root ** (p**3) in roots):
