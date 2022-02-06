@@ -17,8 +17,6 @@ def verify():
     q_isprime = CURVE_PRIME_ORDER.is_prime(proof=True)
 
     E = EllipticCurve(k6, [k6(CURVE_COEFF_A), k6(CURVE_COEFF_B)])
-    assert(k6.primitive_element() **
-           POWER_PRIMITIVE_ELEMENT == k6(CURVE_COEFF_B))
 
     # Enforce that the curve has `CURVE_FULL_ORDER` points, and that
     # `CURVE_FULL_ORDER` equals `CURVE_PRIME_ORDER` times `CURVE_COFACTOR`.
