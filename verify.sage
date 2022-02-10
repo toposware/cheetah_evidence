@@ -26,7 +26,6 @@ def verify():
     G = E(k6(CURVE_GENERATOR_X), k6(CURVE_GENERATOR_Y))
 
     # Enforce that basepoint is of order `CURVE_PRIME_ORDER`
-    assert(G.order() == CURVE_PRIME_ORDER)
     assert(G * CURVE_COFACTOR != E(0, 1, 0))
     assert(G * CURVE_PRIME_ORDER == E(0, 1, 0))
 

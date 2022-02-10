@@ -16,8 +16,7 @@ Hence, in order to prevent running time clogging, only Pollard-Rho security agai
 degree is also sufficiently large should be done on the potential candidates the search algorithm may output.
 
 A result of this search algorithm is Cheetah, an elliptic-curve defined over a sextic extension of the prime field of charateristic
-p = 2<sup>64</sup> - 2<sup>32</sup> + 1. To verify its security level, one can run the `verify.sage` script. *Beware that computing the curve basepoint order with Sage builtin methods
-is slow, and requires about 10-15min on normal-grade hardware.*
+p = 2<sup>64</sup> - 2<sup>32</sup> + 1. To verify its security level, one can run the `verify.sage` script.
 
 Cheetah is the first candidate displayed from the `sextic_search.sage` script when running in sequential mode (argument `--sequential`) with the additional `--small-order` argument activated, with a prime order subgroup of size `≥ 252 bits`.
 

@@ -8,7 +8,6 @@ from sage.all import *
 
 # Parameters defining the extension
 P = Integer(18446744069414584321)
-DEGREE = 6
 
 # Polynomials defining the extension tower
 POLY = "x**6 - 7"
