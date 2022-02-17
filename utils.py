@@ -444,6 +444,7 @@ def genus_3_hyperelliptic_cover_security(curve, number_points=0):
     """
 
     n = number_points if number_points != 0 else curve.count_points()
+    p = curve.base_field().characteristic()
     if n % 4 == 0:
         return p.nbits() * 5.0/3 > EXTENSION_SECURITY
     return True

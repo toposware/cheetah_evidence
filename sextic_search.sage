@@ -150,12 +150,10 @@ def print_curve(prime, extension_degree, max_cofactor, small_order, sswu_string,
         else:
             info += f"Looking for prime-order curves.\n"
         print(info)
-    extension, _phi, _psi = make_finite_field(Fp)
 
-    for (extension, E, g, order, cofactor, _coeff_a, coeff_b, rho_security, embedding_degree, twist_rho_security) in find_curve(extension, max_cofactor, small_order, sswu_string, wid, processes):
+    for (extension, E, g, order, cofactor, _coeff_a, coeff_b, rho_security, embedding_degree, twist_rho_security) in find_curve(Fp, max_cofactor, small_order, sswu_string, wid, processes):
         output = "\n\n\n"
         output += f"E(GF(({extension.base_ring().order().factor()})^{extension.degree()})) : y^2 = x^3 + x + {coeff_b}\n"
-        output += f"\t\twith a = {extension.primitive_element()}\n"
         output += f"E generator point (from SSWU on '{sswu_string}'): {g}\n"
         output += f"Curve prime order: {order} ({order.nbits()} bits)\n"
         output += f"Curve cofactor: {cofactor}"
