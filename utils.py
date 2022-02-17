@@ -327,7 +327,7 @@ def embedding_degree(p, r, rm1_factors_list=[]):
     Z_r = Integers(r)
     u = Z_r(p)
     d = r - 1
-    factors = rm1_factors_list if rm1_factors_list != [] else ecm.factor(d)
+    factors = rm1_factors_list if rm1_factors_list != [] else factor(d)
     for (f, _multiplicity) in factors:
         while d % f == 0:
             if u**(d/f) != 1:

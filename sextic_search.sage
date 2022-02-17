@@ -145,8 +145,10 @@ def print_curve(prime, extension_degree, max_cofactor, small_order, sswu_string,
     if wid == 0:
         if small_order:
             info += f"Looking for curves with 252-255-bit prime order.\n"
-        else:
+        elif max_cofactor != 1:
             info += f"Looking for curves with max cofactor: {max_cofactor}.\n"
+        else:
+            info += f"Looking for prime-order curves.\n"
         print(info)
     extension, _phi, _psi = make_finite_field(Fp)
 
@@ -175,32 +177,31 @@ def main():
     args = sys.argv[1:]
     processes = 1 if "--sequential" in args else cpu_count()
     small_order = "--small-order" in args
-    strategy = print_curve
     help = "--help" in args
     args = [arg for arg in args if not arg.startswith("--")]
 
     if help:
         print("""
-Cmd: sage sextic_search.sage [--sequential] [--small-order] <prime> <extension_degree> <max_cofactor> <sswu_string>
+Cmd: sage sextic_search.sage [--sequential] [--small-order] <prime> <max_cofactor> <sswu_string>
 
 Args:
     --sequential        Uses only one process
     --small-order       Looks for curves with 252-255-bit prime order (overrides cofactor)
     <prime>             A prime number, default 2^62 + 2^56 + 2^55 + 1
-    <max_cofactor>      Maximum cofactor of the curve, default 64
+    <max_cofactor>      Maximum cofactor of the curve, default 1 (prime order curve)
     <sswu_string>       The string to be passed to the SSWU map to curve algorithm
 """)
         return
 
     prime = int(args[0]) if len(
-        args) > 0 else 18446744069414584321  # 2^64 - 2^32 + 1
+        args) > 0 else 2**64 - 2**32 + 1
     extension_degree = 6
-    max_cofactor = int(args[1]) if len(args) > 1 else 64
+    max_cofactor = int(args[1]) if len(args) > 1 else 1
     sswu_string = str(args[3]) if len(args) > 3 else "Cheetah"
 
     if processes == 1:
-        strategy(prime, extension_degree,
-                 max_cofactor, small_order, sswu_string)
+        print_curve(prime, extension_degree,
+                    max_cofactor, small_order, sswu_string)
     else:
         print(f"Using {processes} processes.")
         pool = Pool(processes=processes)
@@ -208,7 +209,7 @@ Args:
         try:
             for wid in range(processes):
                 pool.apply_async(
-                    worker, (strategy, prime, extension_degree, max_cofactor, small_order, sswu_string, wid, processes))
+                    worker, (prime, extension_degree, max_cofactor, small_order, sswu_string, wid, processes))
 
             while True:
                 sleep(1000)
@@ -218,10 +219,10 @@ Args:
             pool.terminate()
 
 
-def worker(strategy, *args):
+def worker(*args):
     res = []
     try:
-        res = real_worker(strategy, *args)
+        res = real_worker(*args)
     except (KeyboardInterrupt, SystemExit):
         pass
     except:
@@ -230,8 +231,8 @@ def worker(strategy, *args):
         return res
 
 
-def real_worker(strategy, *args):
-    return strategy(*args)
+def real_worker(*args):
+    return print_curve(*args)
 
 
 main()
