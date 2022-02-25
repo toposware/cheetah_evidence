@@ -51,6 +51,12 @@ To perform security checks on the Cheetah curve (you may need to install `termco
 sage verify.sage
 ```
 
+## Curve implementation
+
+A prototype implementation of the Cheetah curve in Rust is available at https://github.com/Toposware/cheetah.
+The library features constant-time field and group arithmetic, and does not rely on the Rust standard library,
+allowing it to be compiled to WebAssembly.
+
 ## License
 
 Licensed under either of
