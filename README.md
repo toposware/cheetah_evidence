@@ -46,7 +46,7 @@ sage sextic_search.sage 18446744069414584321 --small-order
 
 ---
 
-To perform security checks on the Cheetah curve:
+To perform security checks on the Cheetah curve (you may need to install `termcolor`):
 ```bash
 sage verify.sage
 ```

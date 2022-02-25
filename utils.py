@@ -3,7 +3,6 @@ Utility module for search and verification algorithms.
 """
 
 from sage.all import *
-from termcolor import colored
 from itertools import combinations_with_replacement
 
 # Bitlength thresholds for different attacks security considerations
@@ -238,6 +237,8 @@ def display_result(
     - ``is_ghs_secure`` -- a boolean indicating if the curve is secure against the GHS attack
 
     """
+
+    from termcolor import colored
 
     def color(bool):
         return colored(bool, 'green' if bool else 'red')

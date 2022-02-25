@@ -6,7 +6,9 @@ import sys
 from multiprocessing import cpu_count, Pool
 from traceback import print_exc
 
-from utils import *
+from utils import RHO_SECURITY, TWIST_SECURITY, EMBEDDING_DEGREE_SECURITY
+from utils import find_irreducible_poly, find_sparse_irreducible_poly, poly_weight
+from utils import curve_security, sextic_extension_specific_security, twist_security_ignore_embedding_degree
 from util_hashtocurve import OptimizedSSWU
 
 if sys.version_info[0] == 2:
