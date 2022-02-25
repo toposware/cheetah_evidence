@@ -44,13 +44,13 @@ def verify():
     assert(G == g_sswu)
 
     # Compute Pollard-Rho security and embedding degree for the curve and its twist
-    e_security = curve_security(
+    e_security = generic_curve_security(
         P ** 6, CURVE_FULL_ORDER, CURVE_PRIME_ORDER, CURVE_PRIME_ORDER_MINUS_ONE_FACTORS)
-    t_security = twist_security(
+    t_security = generic_twist_security(
         P ** 6, CURVE_FULL_ORDER, TWIST_PRIME_ORDER, TWIST_PRIME_ORDER_MINUS_ONE_FACTORS)
 
-    is_pollard_rho_secure = e_security[0] > RHO_SECURITY
-    twist_is_pollard_rho_secure = t_security[0] > TWIST_SECURITY
+    is_pollard_rho_secure = e_security[0] > POLLARD_RHO_SECURITY
+    twist_is_pollard_rho_secure = t_security[0] > POLLARD_RHO_TWIST_SECURITY
     is_mov_secure = e_security[1].nbits() > EMBEDDING_DEGREE_SECURITY
     twist_is_mov_secure = t_security[1] > EMBEDDING_DEGREE_SECURITY
 

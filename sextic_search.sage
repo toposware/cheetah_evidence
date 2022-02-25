@@ -6,9 +6,9 @@ import sys
 from multiprocessing import cpu_count, Pool
 from traceback import print_exc
 
-from utils import RHO_SECURITY, TWIST_SECURITY, EMBEDDING_DEGREE_SECURITY
+from utils import POLLARD_RHO_SECURITY, POLLARD_RHO_TWIST_SECURITY, EMBEDDING_DEGREE_SECURITY
 from utils import find_irreducible_poly, find_sparse_irreducible_poly, poly_weight
-from utils import curve_security, sextic_extension_specific_security, twist_security_ignore_embedding_degree
+from utils import generic_curve_security, sextic_extension_specific_security, generic_twist_security_ignore_embedding_degree
 from util_hashtocurve import OptimizedSSWU
 
 if sys.version_info[0] == 2:
@@ -76,7 +76,7 @@ def find_curve(extension, max_cofactor, small_order, sswu_string, wid=0, process
         if prime_order * g != E(0, 1, 0):
             g = cofactor * g
 
-        (rho_sec, k) = curve_security(
+        (rho_sec, k) = generic_curve_security(
             extension.cardinality(), n, prime_order)
 
         if k.nbits() < EMBEDDING_DEGREE_SECURITY:
@@ -85,7 +85,7 @@ def find_curve(extension, max_cofactor, small_order, sswu_string, wid=0, process
         sys.stdout.write("+")
         sys.stdout.flush()
 
-        if rho_sec < RHO_SECURITY:
+        if rho_sec < POLLARD_RHO_SECURITY:
             continue
 
         sys.stdout.write("~")
@@ -99,10 +99,10 @@ def find_curve(extension, max_cofactor, small_order, sswu_string, wid=0, process
         # Factorization for calculating the embedding degree can be extremely slow
         # hence this check must be performed separately on potential candidates
         # outputted by the search algorithm.
-        twist_rho_sec = twist_security_ignore_embedding_degree(
+        twist_rho_sec = generic_twist_security_ignore_embedding_degree(
             extension.cardinality(), n)
 
-        if twist_rho_sec < TWIST_SECURITY:
+        if twist_rho_sec < POLLARD_RHO_TWIST_SECURITY:
             continue
 
         yield (extension, E, g, prime_order, cofactor, coeff_a, coeff_b, rho_sec, k, twist_rho_sec)

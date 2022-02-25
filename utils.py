@@ -6,9 +6,9 @@ from sage.all import *
 from itertools import combinations_with_replacement
 
 # Bitlength thresholds for different attacks security considerations
-RHO_SECURITY = 125
-EXTENSION_SECURITY = 125
-TWIST_SECURITY = 100
+POLLARD_RHO_SECURITY = 125
+SEXTIC_EXTENSION_SECURITY = 125
+POLLARD_RHO_TWIST_SECURITY = 100
 EMBEDDING_DEGREE_SECURITY = 200
 DISCRIMINANT_SECURITY = 100
 # For Pollard-Rho security analysis
@@ -273,7 +273,7 @@ def display_result(
 #  CURVE SECURITY FUNCTIONS  #
 ##############################
 
-def curve_security(p, q, main_factor=0, main_factor_m1_factors_list=[]):
+def generic_curve_security(p, q, main_factor=0, main_factor_m1_factors_list=[]):
     r""" Return the estimated cost of running Pollard-Rho against
     the curve main subgroup, and the curve embedding degree.
 
@@ -321,7 +321,7 @@ def embedding_degree(p, r, rm1_factors_list=[]):
     """
 
     # We do not check the validity of `rm1_factors_list` as this
-    # method is always called from `curve_security()` which
+    # method is always called from `generic_curve_security()` which
     # performs the check.
 
     assert gcd(p, r) == 1
@@ -338,7 +338,7 @@ def embedding_degree(p, r, rm1_factors_list=[]):
     return Integer(d)
 
 
-def twist_security(p, q, main_factor_of_2pp1mq=0, main_factor_of_2pp1mq_m1_factors_list=[]):
+def generic_twist_security(p, q, main_factor_of_2pp1mq=0, main_factor_of_2pp1mq_m1_factors_list=[]):
     r""" Return the estimated cost of running Pollard-Rho against
     the twist of the curve main subgroup, and the twist embedding degree.
 
@@ -356,12 +356,12 @@ def twist_security(p, q, main_factor_of_2pp1mq=0, main_factor_of_2pp1mq_m1_facto
     """
 
     # Validity checks on `main_factor_of_2pp1mq` and `main_factor_of_2pp1mq_m1_factors_list`
-    # are performed inside `curve_security()` (if provided)
+    # are performed inside `generic_curve_security()` (if provided)
 
-    return curve_security(p, 2*(p+1) - q, main_factor_of_2pp1mq, main_factor_of_2pp1mq_m1_factors_list)
+    return generic_curve_security(p, 2*(p+1) - q, main_factor_of_2pp1mq, main_factor_of_2pp1mq_m1_factors_list)
 
 
-def twist_security_ignore_embedding_degree(p, q, main_factor_of_2pp1mq=0):
+def generic_twist_security_ignore_embedding_degree(p, q, main_factor_of_2pp1mq=0):
     r""" Return the estimated cost of running Pollard-Rho against the twist of the curve main subgroup.
 
     INPUT:
@@ -447,7 +447,7 @@ def genus_3_hyperelliptic_cover_security(curve, number_points=0):
     n = number_points if number_points != 0 else curve.count_points()
     p = curve.base_field().characteristic()
     if n % 4 == 0:
-        return p.nbits() * 5.0/3 > EXTENSION_SECURITY
+        return p.nbits() * 5.0/3 > SEXTIC_EXTENSION_SECURITY
     return True
 
 
@@ -464,7 +464,7 @@ def genus_3_nonhyperelliptic_cover_security(curve):
     q = curve.base_ring().characteristic() ** 2
     # Kim Laine and Kristin Lauter. Time-memory trade-offs for index calculus
     # in genus 3. Journal of Mathematical Cryptology, 9(2):95-114, 2015
-    return log(1.23123 * log(q, 2) ** 2 * q, 2).numerical_approx() > EXTENSION_SECURITY
+    return log(1.23123 * log(q, 2) ** 2 * q, 2).numerical_approx() > SEXTIC_EXTENSION_SECURITY
 
 
 def ghs_security(curve_coeff_a, curve_coeff_b, curve_basefield):
@@ -505,5 +505,5 @@ def ghs_security(curve_coeff_a, curve_coeff_b, curve_basefield):
     if roots != []:
         for root in roots:
             if (root ** (p**2) in roots) or (root ** (p**3) in roots):
-                return p.nbits() * 8.0 / 3 > EXTENSION_SECURITY
+                return p.nbits() * 8.0 / 3 > SEXTIC_EXTENSION_SECURITY
     return True
