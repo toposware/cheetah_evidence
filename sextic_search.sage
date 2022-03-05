@@ -195,7 +195,7 @@ Cmd: sage sextic_search.sage [--sequential] [--small-order] <prime> <max_cofacto
 Args:
     --sequential        Uses only one process
     --small-order       Looks for curves with 252-255-bit prime order (overrides cofactor)
-    <prime>             A prime number, default 2^62 + 2^56 + 2^55 + 1
+    <prime>             A prime number, default 2^64 - 2^32 + 1
     <max_cofactor>      Maximum cofactor of the curve, default 1 (prime order curve)
     <sswu_string>       The string to be passed to the SSWU map to curve algorithm
 """)
