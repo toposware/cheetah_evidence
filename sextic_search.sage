@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Toposware, Inc.
+# Copyright (c) 2022-2023 Toposware, Inc.
 #
 # Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 # http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -52,7 +52,7 @@ def find_curve(extension, max_cofactor, small_order, sswu_string, wid=0, process
     """
 
     a = extension.gen()
-    for i in range(wid + 1, 1000000000, processes):
+    for i in range(wid + 395, 1000000000, processes):
         sys.stdout.write(".")
         sys.stdout.flush()
 
@@ -76,6 +76,14 @@ def find_curve(extension, max_cofactor, small_order, sswu_string, wid=0, process
         # We generate a point on the curve with the SSWU hash-to-curve algorithm.
         # If the point is not in the prime-order subgroup, we multiply it by the cofactor.
         curve_sswu = OptimizedSSWU(extension, coeff_a, coeff_b)
+        bin = BinaryStrings()
+        sswu_bin_encoding = bin.encoding("Cheetah - Pedersen")
+        sswu_int = extension(int(str(sswu_bin_encoding), 2))
+        g_ped = curve_sswu.map_to_curve(sswu_int)
+
+        if prime_order * g_ped != E(0, 1, 0):
+            g_ped = cofactor * g_ped
+
         bin = BinaryStrings()
         sswu_bin_encoding = bin.encoding(sswu_string)
         sswu_int = extension(int(str(sswu_bin_encoding), 2))
@@ -113,7 +121,7 @@ def find_curve(extension, max_cofactor, small_order, sswu_string, wid=0, process
         if twist_rho_sec < POLLARD_RHO_TWIST_SECURITY:
             continue
 
-        yield (extension, E, g, prime_order, cofactor, coeff_a, coeff_b, rho_sec, k, twist_rho_sec)
+        yield (extension, E, g, g_ped, prime_order, cofactor, coeff_a, coeff_b, rho_sec, k, twist_rho_sec)
 
 
 def print_curve(prime, extension_degree, max_cofactor, small_order, sswu_string, wid=0, processes=1):
@@ -161,10 +169,11 @@ def print_curve(prime, extension_degree, max_cofactor, small_order, sswu_string,
             info += f"Looking for prime-order curves.\n"
         print(info)
 
-    for (extension, E, g, order, cofactor, _coeff_a, coeff_b, rho_security, embedding_degree, twist_rho_security) in find_curve(Fp, max_cofactor, small_order, sswu_string, wid, processes):
+    for (extension, E, g, g_ped, order, cofactor, _coeff_a, coeff_b, rho_security, embedding_degree, twist_rho_security) in find_curve(Fp, max_cofactor, small_order, sswu_string, wid, processes):
         output = "\n\n\n"
         output += f"E(GF(({extension.base_ring().order().factor()})^{extension.degree()})) : y^2 = x^3 + x + {coeff_b}\n"
         output += f"E generator point (from SSWU on '{sswu_string}'): {g}\n"
+        output += f"E generator point (from SSWU on 'Cheetah - Pedersen'): {g_ped}\n"
         output += f"Curve prime order: {order} ({order.nbits()} bits)\n"
         output += f"Curve cofactor: {cofactor}"
         if cofactor > 4:
